@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>北武灵尊</title>
+  <title>XCTest单元测试 - 北武灵尊</title>
   <meta name="author" content="lingzuer">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://lingzuer.github.io">
+  <link rel="canonical" href="http://lingzuer.github.io/blog/2015/01/29/xctestdan-yuan-ce-shi">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="北武灵尊" type="application/atom+xml">
@@ -63,15 +63,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/01/29/xctestdan-yuan-ce-shi/">XCTest单元测试</a></h1>
+      <h1 class="entry-title">XCTest单元测试</h1>
     
     
       <p class="meta">
@@ -87,7 +84,7 @@
   </header>
 
 
-  <div class="entry-content"><p>QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲，就当是玩笑拒绝了，那么多大牛都在，找我讲？后来又说让我讲，是认真的，那我想，反正他们也不会，忽悠一下他们还是OK的了，简单的写个Hello World还是不成问题的，于是就去讲了，讲到后来才明白他们想的最终需求是：单元测试。作为开发我从来没有了解过这一块，我说自己回去先写个Demo。于是上网各种搜索，还是有些收获的，昨天晚上到12:40，对UI和属性的测试有了点思路，完成一个简单的Demo，就当是单元测试的Hello World吧，今天上午又搞定了异步请求的单元测试，结合自己项目（方便写登录的请求）写了一个Demo，这也是列为今天Do list的第一个任务。现在记录一下。</p>
+<div class="entry-content"><p>QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲，就当是玩笑拒绝了，那么多大牛都在，找我讲？后来又说让我讲，是认真的，那我想，反正他们也不会，忽悠一下他们还是OK的了，简单的写个Hello World还是不成问题的，于是就去讲了，讲到后来才明白他们想的最终需求是：单元测试。作为开发我从来没有了解过这一块，我说自己回去先写个Demo。于是上网各种搜索，还是有些收获的，昨天晚上到12:40，对UI和属性的测试有了点思路，完成一个简单的Demo，就当是单元测试的Hello World吧，今天上午又搞定了异步请求的单元测试，结合自己项目（方便写登录的请求）写了一个Demo，这也是列为今天Do list的第一个任务。现在记录一下。</p>
 
 <p>1、新建一个测试的Target</p>
 
@@ -215,65 +212,44 @@ XCTAssert(YES, @"Pass");
 </ul>
 
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
+  
+
+<span class="byline author vcard">Posted by <span class="fn">lingzuer</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-01-29T22:14:13+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:14 pm</span></time>
+      
+
+
+    </p>
     
-      <h1 class="entry-title"><a href="/blog/2015/01/28/hello-to-myself/">Hello to Myself</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-01-28T15:17:17+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:17 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Octopress听到它有些时间了，并且还配置好Run成功了，甚至有个Hello World的一个博文，我看了提交记录是Aug 14, 2013。从这之后就放着了，因为不知道写什么。再后来，看很多大牛写博客，然后就自己也想写，有个幼稚的想法是：大牛要写博客，写博客会成为大牛。</p>
-
-<p>仔细想想写什么东西呢？写的东西给谁看呢？好累，现在想通了，我的博客定位就是自己记录一下自己学到的知识点，以前不知道的，现在知道了，记录下来，下次再想查的时候，方便一点儿，于是就下定决心想要写了。</p>
-
-<p>这个时候已经换了一台电脑了，又要重新折腾Octopress，在一步一步配置的时候，出现问题了，没有Run成功，于是又放下了，第二天又尝试了一次，又没有成功，就又放下了，如此反复几次后，暗暗的下了一个决心：一定要Run起来，不然会对以后的修行有障碍（凡人修仙）。</p>
-
-<p>花了一整天时间上网查找资料，功夫不负有心人，折腾到下午的时候，突然一个尝试了一个方法，结果成功了。心里特别开心，觉得只要下死功夫没有搞不定的。</p>
-
-<p>环境搞好了，又陷入了脑海（脑子里的一片独特空间，这个地方不断有新想法冒出来）中，第一篇写点什么呢，写的不好怎么办呢？就又放了有一个月。</p>
-
-<p>而后在反思自己为什么总有一些想法（养鱼、养花、打羽毛球，还有很多）冒出来，却都没有实施的时候，突然诊断出自己又一个到了晚期的心理病：拖延症，严重的拖延症。</p>
-
-<p>症状表现是：总是在想，从来没有实施。自己的脑海里面有N个idea，每个idea都是那么的美好（老婆说很多都不切实际），当想实施的时候，发现有许许多多的条件不满足，即使做了，也达不到预期的美好效果，然后就放弃了，开始下一个胡思乱想。可能还有个原因就是，想做到最好，所以没有开始做。</p>
-
-<p>这让我心里有些害怕，我从什么时候变成这样，或者一直是这样，一直没有发现么。</p>
-
-<p>我想改变，哪怕是做一点很小的事情或者举动（比如一直在脑海里做俯卧撑，这个时候身体实施了一个俯卧撑动作），只要不是光想着的就行。</p>
-
-<p>这样有了这一篇博文，我想写，我写了。</p>
+      <div class="sharing">
+  
+  
+  
 </div>
-  
-  
 
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/01/28/hello-to-myself/" title="Previous Post: Hello To Myself">&laquo; Hello To Myself</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
 </div>
+
 <aside class="sidebar">
   
     <section>
@@ -297,6 +273,7 @@ XCTAssert(YES, @"Pass");
 
   
 </aside>
+
 
     </div>
   </div>
