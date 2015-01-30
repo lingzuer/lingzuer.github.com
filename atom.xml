@@ -4,7 +4,7 @@
   <title><![CDATA[北武灵尊]]></title>
   <link href="http://lingzuer.github.io/atom.xml" rel="self"/>
   <link href="http://lingzuer.github.io/"/>
-  <updated>2015-01-29T23:27:36+08:00</updated>
+  <updated>2015-01-30T08:44:02+08:00</updated>
   <id>http://lingzuer.github.io/</id>
   <author>
     <name><![CDATA[lingzuer]]></name>
@@ -18,7 +18,7 @@
     <link href="http://lingzuer.github.io/blog/2015/01/29/xctestdan-yuan-ce-shi/"/>
     <updated>2015-01-29T22:14:13+08:00</updated>
     <id>http://lingzuer.github.io/blog/2015/01/29/xctestdan-yuan-ce-shi</id>
-    <content type="html"><![CDATA[<p>QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲，就当是玩笑拒绝了，那么多大牛都在，找我讲？后来又说让我讲，是认真的，那我想，反正他们也不会，忽悠一下他们还是OK的了，简单的写个Hello World还是不成问题的，于是就去讲了，讲到后来才明白他们想的最终需求是：单元测试。作为开发我从来没有了解过这一块，我说自己回去先写个Demo。于是上网各种搜索，还是有些收获的，昨天晚上到12:40，对UI和属性的测试有了点思路，完成一个简单的Demo，就当是单元测试的Hello World吧，今天上午又搞定了异步请求的单元测试，结合自己项目（方便写登录的请求）写了一个Demo，这也是列为今天Do list的第一个任务。现在记录一下。</p>
+    <content type="html"><![CDATA[<p>QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲，就当是玩笑拒绝了，那么多大牛都在，找我讲？后来又说让我讲，是认真的，那我想，反正他们也不会，忽悠一下他们还是OK的了，简单的写个Hello World还是不成问题的，于是就去讲了，讲到后来才明白他们想的最终需求是：单元测试。作为开发我从来没有了解过这一块，我说自己回去先写个Demo。于是上网各种搜索，还是有些收获的，昨天晚上到12:40，对UI和属性的测试有了点思路，完成一个简单的Demo，就当是单元测试的Hello World吧，今天上午又搞定了异步请求的单元测试，结合自己项目（方便写登录的请求）写了一个Demo，这也是列为今天todo list的第一个任务。现在记录一下。</p>
 
 <p>1、新建一个测试的Target</p>
 
@@ -31,17 +31,23 @@
 
 <p>3、新建Test Class</p>
 
-<p><img src="http://lingzuer.github.io/images/blog/test-class.png" alt="Test Class" /></p>
+<p>见图一。</p>
 
 <p>4、引入需要的文件开始测试
 比如要写一个登录的单元测试，那要引入LoginManager.h之类的文件吧，我大概写一下，有些是项目的代码，不知道写在博文里面好不好。</p>
 
-<pre><code>#import "LoginManager.h"
+<pre><code>#import &lt;UIKit/UIKit.h&gt;
+#import &lt;XCTest/XCTest.h&gt;
+#import "LoginManager.h"
 #import "LoginCallBack.h"
 
 @interface MyTests : XCTestCase {
     XCTestExpectation *_expectation;
 }
+
+@end
+
+@implementation MyTests
 
 - (void)setUp {
     [super setUp];
@@ -54,32 +60,24 @@
 }
 
 #pragma mark - 通知
-
 - (void)addListenEvents {
-
     extern NSString *kYIXINNotificationLoginResult;
-
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onGetLoginResult:) name:kYIXINNotificationLoginResult object:nil];
-
 }
 
 - (void)removeListenEvents {
-
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - Test Methods
-
 - (void)testUserLogin {
     _expectation = [self expectationWithDescription:@"Login request"];
 
     NSString *username = @"userID";
-    NSString *password = @"123456";
+    NSString *password = @"111111";
 
     [LoginManager sharedManager].currentLoginData.userName = username;
-
-    [LoginManager sharedManager].currentLoginData.userPassword = [YixinUtil encytePassword:password];
-
+    [LoginManager sharedManager].currentLoginData.userPassword = [XXUtil encytePassword:password];
     [LoginManager sharedManager].currentLoginData.type = kAccountYid;
 
     [[LoginManager sharedManager] beginLogin];
@@ -95,14 +93,12 @@
 
 
 #pragma mark - LoginResultProtocol
-
 - (void)onGetLoginResult:(NSNotification*)aNotification {
     extern NSString *kLoginStepKey;
     extern NSString *kLoginResultKey;
 
     NSDictionary *data  = aNotification.userInfo;
     NSInteger step      = [[data objectForKey:kLoginStepKey] intValue];
-
     NSInteger errorCode = [[data objectForKey:kLoginResultKey] intValue];
 
     if (step == kLoginStepLogin) {
