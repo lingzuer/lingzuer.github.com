@@ -6,7 +6,7 @@ comments: true
 categories: 
 ---
 
-QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲，就当是玩笑拒绝了，那么多大牛都在，找我讲？后来又说让我讲，是认真的，那我想，反正他们也不会，忽悠一下他们还是OK的了，简单的写个Hello World还是不成问题的，于是就去讲了，讲到后来才明白他们想的最终需求是：单元测试。作为开发我从来没有了解过这一块，我说自己回去先写个Demo。于是上网各种搜索，还是有些收获的，昨天晚上到12:40，对UI和属性的测试有了点思路，完成一个简单的Demo，就当是单元测试的Hello World吧，今天上午又搞定了异步请求的单元测试，结合自己项目（方便写登录的请求）写了一个Demo，这也是列为今天Do list的第一个任务。现在记录一下。
+QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲，就当是玩笑拒绝了，那么多大牛都在，找我讲？后来又说让我讲，是认真的，那我想，反正他们也不会，忽悠一下他们还是OK的了，简单的写个Hello World还是不成问题的，于是就去讲了，讲到后来才明白他们想的最终需求是：单元测试。作为开发我从来没有了解过这一块，我说自己回去先写个Demo。于是上网各种搜索，还是有些收获的，昨天晚上到12:40，对UI和属性的测试有了点思路，完成一个简单的Demo，就当是单元测试的Hello World吧，今天上午又搞定了异步请求的单元测试，结合自己项目（方便写登录的请求）写了一个Demo，这也是列为今天todo list的第一个任务。现在记录一下。
 
 1、新建一个测试的Target
 
@@ -19,18 +19,24 @@ QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲�
 
 3、新建Test Class
 
-![Test Class](/images/blog/test-class.png)
+见图一。
 
 4、引入需要的文件开始测试
 比如要写一个登录的单元测试，那要引入LoginManager.h之类的文件吧，我大概写一下，有些是项目的代码，不知道写在博文里面好不好。
 
+	#import <UIKit/UIKit.h>
+	#import <XCTest/XCTest.h>
 	#import "LoginManager.h"
 	#import "LoginCallBack.h"
 	
 	@interface MyTests : XCTestCase {
 		XCTestExpectation *_expectation;
 	}
+	
+	@end
 
+	@implementation MyTests
+	
 	- (void)setUp {
 		[super setUp];
 		[self addListenEvents];
@@ -42,32 +48,24 @@ QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲�
 	}
 
 	#pragma mark - 通知
-
 	- (void)addListenEvents {
-
     	extern NSString *kYIXINNotificationLoginResult;
-
     	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onGetLoginResult:) name:kYIXINNotificationLoginResult object:nil];
-
 	}
 
 	- (void)removeListenEvents {
-
     	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	}
 	
 	#pragma mark - Test Methods
-
 	- (void)testUserLogin {
     	_expectation = [self expectationWithDescription:@"Login request"];
 
     	NSString *username = @"userID";
-    	NSString *password = @"123456";
+    	NSString *password = @"111111";
 
     	[LoginManager sharedManager].currentLoginData.userName = username;
-
-    	[LoginManager sharedManager].currentLoginData.userPassword = [YixinUtil encytePassword:password];
-
+    	[LoginManager sharedManager].currentLoginData.userPassword = [XXUtil encytePassword:password];
     	[LoginManager sharedManager].currentLoginData.type = kAccountYid;
 
     	[[LoginManager sharedManager] beginLogin];
@@ -83,14 +81,12 @@ QA的同事说帮他们讲一下OC，我自己都是个搓鸟，还给别人讲�
 
 
 	#pragma mark - LoginResultProtocol
-
 	- (void)onGetLoginResult:(NSNotification*)aNotification {
     	extern NSString *kLoginStepKey;
     	extern NSString *kLoginResultKey;
 
     	NSDictionary *data  = aNotification.userInfo;
     	NSInteger step      = [[data objectForKey:kLoginStepKey] intValue];
-
     	NSInteger errorCode = [[data objectForKey:kLoginResultKey] intValue];
 
     	if (step == kLoginStepLogin) {
