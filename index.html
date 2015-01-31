@@ -9,7 +9,7 @@
   <meta name="author" content="lingzuer">
 
   
-  <meta name="description" content="自己常用的一些脚本，批量查找、替换、删除。 1、复制一个文件夹下的文件到另外一个文件夹下 cp -ri bar/ foo/ 2、删除文件夹下的文件 rm -rf /images/image* 3、在文件中查找关键字并替换 grep -rl "2013 - 浙ICP备" * | xargs sed &hellip;">
+  <meta name="description" content="之前有一篇写XCTest异步测试，现在写一下对属性值变化的测试。比如设置某个属性的值，然后调用了某个方法后，值的变化是不是我们预期得到的。下面的代码是作者jtang写的，我修改了一句以适应ARC模式。 1、创建一个NSObject的扩展类(Category) NSObject+Properties &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +65,203 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/01/31/xctestce-shi-shu-xing-bian-hua/">XCTest测试属性变化</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-31T21:01:07+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>9:01 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前有一篇写XCTest异步测试，现在写一下对属性值变化的测试。比如设置某个属性的值，然后调用了某个方法后，值的变化是不是我们预期得到的。下面的代码是作者jtang写的，我修改了一句以适应ARC模式。</p>
+
+<p>1、创建一个NSObject的扩展类(Category)</p>
+
+<p>NSObject+Properties.h</p>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+@interface NSObject (Properties)
+
+// 仅可用于单元测试 ivarName是成员变量名字,不是属性名字
+// 对于对象直接返回,如果是原始数据类型.返回NSValue
+// 示例:
+// NSValue *value = [self getIvarFromString_ONLY_USE_IN_UNIT_TEST:@"_test"];
+// int x;
+// [value getValue:&amp;x];
+- (id)getIvarFromString_ONLY_USE_IN_UNIT_TEST:(NSString *)ivarName;
+
+@end
+</code></pre>
+
+<p>NSObject+Properties.m</p>
+
+<pre><code>#import "NSObject+Properties.h"
+#import &lt;objc/runtime.h&gt;
+
+@implementation NSObject (Properties)
+
+- (id)getIvarFromString_ONLY_USE_IN_UNIT_TEST:(NSString *)ivarName
+{
+
+    Ivar ivar = class_getInstanceVariable(self.class, [ivarName UTF8String]);
+    //    Ivar ivar = object_getInstanceVariable(self, [ivarName UTF8String], NULL);
+
+    if (ivar)
+    {
+        id ivarID = object_getIvar(self, ivar);
+        const char *typeEncoding = ivar_getTypeEncoding(ivar);
+        if (typeEncoding[0] == '@')
+        {
+            return ivarID;
+        }
+        else
+        {
+            return [NSValue valueWithBytes:&amp;ivarID objCType:typeEncoding];
+        }
+    }
+
+    return nil;
+}
+
+@end
+</code></pre>
+
+<p>2、用法举例</p>
+
+<p>ViewController.h</p>
+
+<pre><code>#import &lt;UIKit/UIKit.h&gt;
+
+@interface ViewController : UIViewController
+
+- (void)test;
+
+@end
+</code></pre>
+
+<p>ViewController.m</p>
+
+<pre><code>#import "ViewController.h"
+
+@interface ViewController ()
+
+@property (nonatomic, strong) NSString *userName;
+
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    _userName = @"abc";
+}
+
+- (void)test {
+    _userName = @"def";
+}
+
+@end
+</code></pre>
+
+<p>测试文件MyAppTests.m</p>
+
+<pre><code>#import &lt;UIKit/UIKit.h&gt;
+#import &lt;XCTest/XCTest.h&gt;
+#import "ViewController.h"
+#import "NSObject+Properties.h"
+
+@interface MyAppTests : XCTestCase {
+    // add instance variables to the CalcTests class
+
+    ViewController  *viewController;
+}
+
+@end
+
+@implementation MyAppTests
+
+- (void)setUp {
+    [super setUp];
+    // Put setup code here. This method is called before the invocation of each test method in the class.
+    viewController = [[ViewController alloc] init];
+}
+
+- (void)tearDown {
+    // Put teardown code here. This method is called after the invocation of each test method in the class.
+    [super tearDown];
+
+}
+
+- (void)testUserName {
+    [viewController test];
+    NSString *userName = (NSString *)[viewController getIvarFromString_ONLY_USE_IN_UNIT_TEST:@"_userName"];
+    XCTAssertEqualObjects(userName, @"def", @"Sussess");
+}
+
+@end
+</code></pre>
+
+<p>3、测试UI变化</p>
+
+<pre><code>#import "TestSettingPickerCell_UI.h"
+#import "SettingPickerCell.h"
+#import "NSObject+Properties.h"
+
+@implementation TestSettingPickerCell_UI
+{
+    SettingPickerCell *cell;
+}
+
+
+- (void)testsetCheckMarkYES
+{
+    UIImageView *checkImageView = [cell getIvarFromString_ONLY_USE_IN_UNIT_TEST:@"_mCheckImageView"];
+    [cell setCheckMark:YES];
+    STAssertEquals(checkImageView.image, [UIImage imageNamed:@"selected_green.png"],@"");
+}
+
+- (void)testsetCheckMarNO
+{
+    UIImageView *checkImageView = [cell getIvarFromString_ONLY_USE_IN_UNIT_TEST:@"_mCheckImageView"];
+    [cell setCheckMark:NO];
+    STAssertEquals(checkImageView.image, [UIImage imageNamed:@"CellUnchecked.png"],@"");
+}
+
+- (void)setUp
+{
+    [super setUp];
+    cell = [[SettingPickerCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
+}
+
+- (void)tearDown
+{
+    [super tearDown];
+}
+
+@end
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -410,6 +607,10 @@ XCTAssert(YES, @"Pass");
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/01/31/xctestce-shi-shu-xing-bian-hua/">XCTest测试属性变化</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/01/30/ji-lei-de-jiao-ben/">积累的脚本</a>
