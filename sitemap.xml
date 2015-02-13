@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://lingzuer.github.io/blog/2015/02/06/yi-xin-nian-hui/</loc>
+    <lastmod>2015-02-06T23:23:04+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>http://lingzuer.github.io/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua/</loc>
+    <lastmod>2015-02-05T14:17:52+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>http://lingzuer.github.io/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi/</loc>
+    <lastmod>2015-02-02T22:55:30+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>http://lingzuer.github.io/blog/2015/02/01/chang-yong-gong-ju/</loc>
+    <lastmod>2015-02-01T22:41:28+08:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>http://lingzuer.github.io/blog/2015/01/31/xctestce-shi-shu-xing-bian-hua/</loc>
     <lastmod>2015-01-31T21:01:07+08:00</lastmod>
     <priority>0.8</priority>
@@ -22,13 +42,13 @@
   </url>
   <url>
     <loc>http://lingzuer.github.io/blog/archives/</loc>
-    <lastmod>2015-01-31T21:42:39+08:00</lastmod>
+    <lastmod>2015-02-13T10:19:22+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://lingzuer.github.io/</loc>
-    <lastmod>2015-01-31T21:42:39+08:00</lastmod>
+    <lastmod>2015-02-13T10:19:22+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>

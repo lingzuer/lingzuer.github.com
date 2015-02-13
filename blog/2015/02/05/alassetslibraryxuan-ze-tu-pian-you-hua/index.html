@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>ALAssetsLibrary选择图片优化 - 北武灵尊</title>
+  <meta name="author" content="lingzuer">
+
+  
+  <meta name="description" content="背景： 老板的手机iphone 6 plus有5000+张相片，每次选择相片的时候需要长时间的loading，不能忍受。 排查问题： 打log排查到最耗时的地方是枚举相片的时候，调用的方法是： - (void)enumerateAssetsUsingBlock:( &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://lingzuer.github.io/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="北武灵尊" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">北武灵尊</a></h1>
+  
+    <h2>记录一些事情，方便查阅。</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="lingzuer.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">ALAssetsLibrary选择图片优化</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-05T14:17:52+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:17 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>背景：</p>
+
+<p>老板的手机iphone 6 plus有5000+张相片，每次选择相片的时候需要长时间的loading，不能忍受。</p>
+
+<p>排查问题：</p>
+
+<p>打log排查到最耗时的地方是枚举相片的时候，调用的方法是：</p>
+
+<pre><code>- (void)enumerateAssetsUsingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+</code></pre>
+
+<p>这个在1000张左右的时候还算OK，但是相片多的时候就耗时了。</p>
+
+<p>然后分析了微信、Lofter、QQ和易信，大概时间是这样的：</p>
+
+<p>环境：iphone6+，相片6000张</p>
+
+<p>微信：1秒</p>
+
+<p>Lofter：1秒</p>
+
+<p>QQ：秒开(无loading)</p>
+
+<p>易信：4秒</p>
+
+<p>注意我说的是大概感受的时间。</p>
+
+<p>这一对比就不淡定了，通过查资料，最后决定使用方案：</p>
+
+<pre><code>- (void)enumerateAssetsAtIndexes:(NSIndexSet *)indexSet options:(NSEnumerationOptions)options usingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+</code></pre>
+
+<p>对，其实就是换了一个方法，哈哈，那思路就完全不一样了，之前是枚举出了所有的图片，保存到内存中，后面都使用这个数组，这样，开始的时候就比较耗时，后面使用的时候倒是很爽，之后呢，是通过IndexSet方法配合Table的cellForRow，产看那个加载那个，一张张加载，是不是很爽。</p>
+
+<p>换了新方法后，我也把loading给拿掉了，表现能达到QQ。</p>
+
+<p>然后问题来了，预览大图的时候怎么处理？预览大图还要排除掉视频，怎么保证顺序和currentIndex？</p>
+
+<p>又拿QQ和微信做了分析，发现：</p>
+
+<p>QQ点击相片的时候是[选中]操作，最下面的“预览”按钮是预览所有选中的相片。</p>
+
+<p>微信点击相片是预览大图，在预览大图的时候可以选中该相片。</p>
+
+<p>我个人觉得QQ是很合理，策划说微信的交互比较方便，那挑战就来了，在我们的速度达到QQ以后，交互还要达到微信。</p>
+
+<p>难点：</p>
+
+<p>1、点击其中一个相片预览大图，大图可以左右滑动查看所有相片。</p>
+
+<p>2、预览大图左右滑动的时候需要把视频过滤掉。</p>
+
+<p>分析：</p>
+
+<p>1、在显示相片列表的时候已经枚举了这一屏所显示的20几张相片，点击其中任何一个相片，预览大图都没有问题，那么滑动的时候我们再动态枚举后面的相片，就OK了吧。</p>
+
+<p>2、动态枚举后面的相片时，过滤掉视频，然后再排序，然后再定位当前相片在新的数组中的index就好了，这个地方牵扯出了一个新的难点：动态枚举出新的相片产生新的数组后，什么时候更新PageView呢？</p>
+
+<p>解决新的难题：</p>
+
+<p>滑动预览时，预加载到index==0(PageView只显示三个图片，会预加载提前一个图片)的时候，我们通过IndexSet预加载接下来的20(自己定义)张相片，然后过滤掉视频，并且从新排序，把新取到的数组先放着，等到用户不滑动的时候更新PageView，重新定位currentIndex值。</p>
+
+<p>后续：</p>
+
+<p>1、继续重构、优化；</p>
+
+<p>2、提供Demo</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">lingzuer</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-02-05T14:17:52+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:17 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi/" title="Previous Post: AssetsLibrary自定义图片选择器">&laquo; AssetsLibrary自定义图片选择器</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/02/06/yi-xin-nian-hui/" title="Next Post: 易信年会">易信年会 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/02/06/yi-xin-nian-hui/">易信年会</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua/">ALAssetsLibrary选择图片优化</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi/">AssetsLibrary自定义图片选择器</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/01/chang-yong-gong-ju/">常用工具</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/31/xctestce-shi-shu-xing-bian-hua/">XCTest测试属性变化</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - lingzuer -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

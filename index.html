@@ -9,7 +9,8 @@
   <meta name="author" content="lingzuer">
 
   
-  <meta name="description" content="之前有一篇写XCTest异步测试，现在写一下对属性值变化的测试。比如设置某个属性的值，然后调用了某个方法后，值的变化是不是我们预期得到的。下面的代码是作者jtang写的，我修改了一句以适应ARC模式。 1、创建一个NSObject的扩展类(Category) NSObject+Properties &hellip;">
+  <meta name="description" content="易信年会收获： 1、能不能再多做一点 2、三等奖净水器 不好的： 家里已经安装了净水器
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +66,410 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/06/yi-xin-nian-hui/">易信年会</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-06T23:23:04+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>11:23 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>易信年会收获：</p>
+
+<p>1、能不能再多做一点</p>
+
+<p>2、三等奖净水器</p>
+
+<p>不好的：</p>
+
+<p>家里已经安装了净水器</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua/">ALAssetsLibrary选择图片优化</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-05T14:17:52+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:17 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>背景：</p>
+
+<p>老板的手机iphone 6 plus有5000+张相片，每次选择相片的时候需要长时间的loading，不能忍受。</p>
+
+<p>排查问题：</p>
+
+<p>打log排查到最耗时的地方是枚举相片的时候，调用的方法是：</p>
+
+<pre><code>- (void)enumerateAssetsUsingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+</code></pre>
+
+<p>这个在1000张左右的时候还算OK，但是相片多的时候就耗时了。</p>
+
+<p>然后分析了微信、Lofter、QQ和易信，大概时间是这样的：</p>
+
+<p>环境：iphone6+，相片6000张</p>
+
+<p>微信：1秒</p>
+
+<p>Lofter：1秒</p>
+
+<p>QQ：秒开(无loading)</p>
+
+<p>易信：4秒</p>
+
+<p>注意我说的是大概感受的时间。</p>
+
+<p>这一对比就不淡定了，通过查资料，最后决定使用方案：</p>
+
+<pre><code>- (void)enumerateAssetsAtIndexes:(NSIndexSet *)indexSet options:(NSEnumerationOptions)options usingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+</code></pre>
+
+<p>对，其实就是换了一个方法，哈哈，那思路就完全不一样了，之前是枚举出了所有的图片，保存到内存中，后面都使用这个数组，这样，开始的时候就比较耗时，后面使用的时候倒是很爽，之后呢，是通过IndexSet方法配合Table的cellForRow，产看那个加载那个，一张张加载，是不是很爽。</p>
+
+<p>换了新方法后，我也把loading给拿掉了，表现能达到QQ。</p>
+
+<p>然后问题来了，预览大图的时候怎么处理？预览大图还要排除掉视频，怎么保证顺序和currentIndex？</p>
+
+<p>又拿QQ和微信做了分析，发现：</p>
+
+<p>QQ点击相片的时候是[选中]操作，最下面的“预览”按钮是预览所有选中的相片。</p>
+
+<p>微信点击相片是预览大图，在预览大图的时候可以选中该相片。</p>
+
+<p>我个人觉得QQ是很合理，策划说微信的交互比较方便，那挑战就来了，在我们的速度达到QQ以后，交互还要达到微信。</p>
+
+<p>难点：</p>
+
+<p>1、点击其中一个相片预览大图，大图可以左右滑动查看所有相片。</p>
+
+<p>2、预览大图左右滑动的时候需要把视频过滤掉。</p>
+
+<p>分析：</p>
+
+<p>1、在显示相片列表的时候已经枚举了这一屏所显示的20几张相片，点击其中任何一个相片，预览大图都没有问题，那么滑动的时候我们再动态枚举后面的相片，就OK了吧。</p>
+
+<p>2、动态枚举后面的相片时，过滤掉视频，然后再排序，然后再定位当前相片在新的数组中的index就好了，这个地方牵扯出了一个新的难点：动态枚举出新的相片产生新的数组后，什么时候更新PageView呢？</p>
+
+<p>解决新的难题：</p>
+
+<p>滑动预览时，预加载到index==0(PageView只显示三个图片，会预加载提前一个图片)的时候，我们通过IndexSet预加载接下来的20(自己定义)张相片，然后过滤掉视频，并且从新排序，把新取到的数组先放着，等到用户不滑动的时候更新PageView，重新定位currentIndex值。</p>
+
+<p>后续：</p>
+
+<p>1、继续重构、优化；</p>
+
+<p>2、提供Demo</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi/">AssetsLibrary自定义图片选择器</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-02T22:55:30+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>10:55 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>1、ALAssetsLibraryAccessor单例</p>
+
+<p>ALAssetsLibraryAccessor.h</p>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+@class ALAssetsLibrary;
+
+@interface ALAssetsLibraryAccessor : NSObject {
+    ALAssetsLibrary *assetsLibrary_;
+}
+
++ (ALAssetsLibraryAccessor *)sharedInstance;
+
+- (ALAssetsLibrary *)assetsLibrary;
+
+- (void)refreshAssetsLibrary;
+
+@end
+</code></pre>
+
+<p>ALAssetsLibraryAccessor.m</p>
+
+<pre><code>#import "ALAssetsLibraryAccessor.h"
+#import &lt;AssetsLibrary/AssetsLibrary.h&gt;
+
+@implementation ALAssetsLibraryAccessor
+
+- (id)init {
+    self = [super init];
+    if (self) {
+        assetsLibrary_ = [[ALAssetsLibrary alloc] init];
+    }
+
+    return  self;
+}
+
++ (ALAssetsLibraryAccessor *)sharedInstance
+{
+    static ALAssetsLibraryAccessor *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&amp;onceToken, ^{
+        sharedInstance = [[ALAssetsLibraryAccessor alloc] init];
+    });
+    return sharedInstance;
+}
+
+- (ALAssetsLibrary *)assetsLibrary {
+    return assetsLibrary_;
+}
+
+- (void)refreshAssetsLibrary {
+    assetsLibrary_ = nil;
+    assetsLibrary_ = [[ALAssetsLibrary alloc] init];
+}
+
+@end
+</code></pre>
+
+<p>2、ALAssetHelper获取AlAsset图片</p>
+
+<p>ALAssetHelper.h</p>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+#import &lt;AssetsLibrary/AssetsLibrary.h&gt;
+
+@interface ALAssetHelper : NSObject
+
++ (UIImage *)getImage:(ALAsset *)asset original:(BOOL)original;
+
+@end
+</code></pre>
+
+<p>ALAssetHelper.m</p>
+
+<pre><code>#import "ALAssetHelper.h"
+
+@implementation ALAssetHelper
+
++ (UIImage *)getImage:(ALAsset *)asset original:(BOOL)original
+{
+    UIImage *image = nil;
+    CGImageRef ref = nil;
+
+    ALAssetRepresentation *rep = [asset defaultRepresentation];
+
+    if (original) {
+        // 获取ios剪裁后的图片
+        NSData *xmpData = rep.metadata[@"AdjustmentXMP"];
+        if (xmpData != nil) {
+            ref   = [rep fullScreenImage];
+            image = [UIImage imageWithCGImage:ref];
+        } else {
+            ref   = [rep fullResolutionImage];
+            image = [UIImage imageWithCGImage:ref
+                                    scale:[rep scale]
+                              orientation:(UIImageOrientation)[rep orientation]];
+        }
+    } else {
+        ref   = [rep fullScreenImage];
+        image = [UIImage imageWithCGImage:ref];
+    }
+
+    return image;
+}
+
+@end
+</code></pre>
+
+<p>3、枚举相册</p>
+
+<pre><code>- (void)enumerateAssetsGroups {
+    self.assetGroups = [NSMutableArray arrayWithCapacity:0];
+
+    ALAssetsLibrary *library = [[ALAssetsLibraryAccessor sharedInstance] assetsLibrary];
+
+    // Load Albums into assetGroups
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @autoreleasepool {
+            // Group enumerator Block
+            void (^assetGroupEnumerator)(ALAssetsGroup *, BOOL *) = ^(ALAssetsGroup *group, BOOL *stop)
+            {
+                if (group) {
+                    [self.assetGroups addObject:group];
+                } else {
+                    // group is nil, so there are no more groups to enumerate
+                }
+            };
+
+            // Group Enumerator Failure Block
+            void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
+                if (error.code == ALAssetsLibraryAccessUserDeniedError ||
+                error.code == ALAssetsLibraryAccessGloballyDeniedError) {
+                // Denied Error
+                }
+            };
+
+            // Enumerate Albums
+            [library enumerateGroupsWithTypes:ALAssetsGroupAll
+                               usingBlock:assetGroupEnumerator
+                             failureBlock:assetGroupEnumberatorFailure];
+        }
+    });
+}
+</code></pre>
+
+<p>4、枚举相片</p>
+
+<pre><code>- (void)enumerateAssets:(ALAssetsGroup *)assetGroup {
+    NSMutableArray *assets = [NSMutableArray arrayWithCapacity:0];
+
+    ALAssetsGroupEnumerationResultsBlock groupEnumeration = ^(ALAsset *result, NSUInteger index, BOOL *stop) {
+        if (result) {
+            [assets addObject:result];
+        } else {
+            //
+        }
+    };
+
+    [assetGroup enumerateAssetsUsingBlock:groupEnumeration];
+}
+</code></pre>
+
+<p>枚举相片的三个方法：</p>
+
+<pre><code>// These methods are used to retrieve the assets that match the filter.  
+// The caller can specify which results are returned using an NSIndexSet. The index set's count or lastIndex cannot exceed -numberOfAssets.
+// 'enumerationBlock' is used to pass back results to the caller and provide the opportunity to stop the filter.
+// When the enumeration is done, 'enumerationBlock' will be called with result set to nil and index set to NSNotFound.
+// If the application has not been granted access to the data, 'enumerationBlock' will be called with result set to nil, index set to NSNotFound, and stop set to YES.
+
+- (void)enumerateAssetsUsingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+- (void)enumerateAssetsWithOptions:(NSEnumerationOptions)options usingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+- (void)enumerateAssetsAtIndexes:(NSIndexSet *)indexSet options:(NSEnumerationOptions)options usingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+</code></pre>
+
+<p>提问：</p>
+
+<p>如何发送一个ALAsset对象的视频？</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/01/chang-yong-gong-ju/">常用工具</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-01T22:41:28+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>10:41 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>1、Unused</p>
+
+<p>网址：<a href="https://github.com/jeffhodnett/Unused">https://github.com/jeffhodnett/Unused</a></p>
+
+<p>优点：找到相同图片可以预览</p>
+
+<p>缺点：</p>
+
+<p>①没有考虑@3x图片(作者好像不维护了)；</p>
+
+<p>②没有排除某个文件夹下面的图片不过滤，导致查找时间较长；</p>
+
+<p>不过这两点都可以自己试着改掉。</p>
+
+<p>使用感受：</p>
+
+<p>需求做完，bug改完，后可以试着跑一下。用处不是很大，该功能下面这个工具也有。主要是以前没有看到过这种用Xcode开发Mac上使用的小工具，比较新奇，玩一下。</p>
+
+<p>2、FauxPas</p>
+
+<p>网址：<a href="http://fauxpasapp.com">http://fauxpasapp.com</a></p>
+
+<p>102 rules: <a href="http://fauxpasapp.com/rules/">http://fauxpasapp.com/rules/</a></p>
+
+<p>这个工具不多说了，直接看官网，是我目前发现比较好用的工具，一是可以帮助我找到项目中写的不好的代码，还有一些建议，二是可以通过这些建议对照想要的代码深入学习理解OC。</p>
+
+<p>使用FauxPas后我的思考和困惑：</p>
+
+<p>1、这样的优化意义大不大？</p>
+
+<p>2、怎么才能让真个团队都提高这种写代码的素质？</p>
+
+<p>3、可以有什么新的产出么？比如做一个Web的分析平台？</p>
+
+<p>之前写的时候<a href="http://mouapp.com">Mou</a>奔溃了，只截了一张图片</p>
+
+<p><img src="/images/blog/used-tools.png" alt="How" /></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -609,19 +1014,23 @@ XCTAssert(YES, @"Pass");
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/02/06/yi-xin-nian-hui/">易信年会</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua/">ALAssetsLibrary选择图片优化</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi/">AssetsLibrary自定义图片选择器</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/01/chang-yong-gong-ju/">常用工具</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/01/31/xctestce-shi-shu-xing-bian-hua/">XCTest测试属性变化</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/01/30/ji-lei-de-jiao-ben/">积累的脚本</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/01/29/xctestdan-yuan-ce-shi/">XCTest单元测试</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/01/28/hello-to-myself/">Hello to Myself</a>
       </li>
     
   </ul>

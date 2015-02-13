@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>AssetsLibrary自定义图片选择器 - 北武灵尊</title>
+  <meta name="author" content="lingzuer">
+
+  
+  <meta name="description" content="1、ALAssetsLibraryAccessor单例 ALAssetsLibraryAccessor.h #import &lt;Foundation/Foundation.h&gt; @class ALAssetsLibrary; @interface &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://lingzuer.github.io/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="北武灵尊" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">北武灵尊</a></h1>
+  
+    <h2>记录一些事情，方便查阅。</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="lingzuer.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">AssetsLibrary自定义图片选择器</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-02T22:55:30+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>10:55 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>1、ALAssetsLibraryAccessor单例</p>
+
+<p>ALAssetsLibraryAccessor.h</p>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+@class ALAssetsLibrary;
+
+@interface ALAssetsLibraryAccessor : NSObject {
+    ALAssetsLibrary *assetsLibrary_;
+}
+
++ (ALAssetsLibraryAccessor *)sharedInstance;
+
+- (ALAssetsLibrary *)assetsLibrary;
+
+- (void)refreshAssetsLibrary;
+
+@end
+</code></pre>
+
+<p>ALAssetsLibraryAccessor.m</p>
+
+<pre><code>#import "ALAssetsLibraryAccessor.h"
+#import &lt;AssetsLibrary/AssetsLibrary.h&gt;
+
+@implementation ALAssetsLibraryAccessor
+
+- (id)init {
+    self = [super init];
+    if (self) {
+        assetsLibrary_ = [[ALAssetsLibrary alloc] init];
+    }
+
+    return  self;
+}
+
++ (ALAssetsLibraryAccessor *)sharedInstance
+{
+    static ALAssetsLibraryAccessor *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&amp;onceToken, ^{
+        sharedInstance = [[ALAssetsLibraryAccessor alloc] init];
+    });
+    return sharedInstance;
+}
+
+- (ALAssetsLibrary *)assetsLibrary {
+    return assetsLibrary_;
+}
+
+- (void)refreshAssetsLibrary {
+    assetsLibrary_ = nil;
+    assetsLibrary_ = [[ALAssetsLibrary alloc] init];
+}
+
+@end
+</code></pre>
+
+<p>2、ALAssetHelper获取AlAsset图片</p>
+
+<p>ALAssetHelper.h</p>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+#import &lt;AssetsLibrary/AssetsLibrary.h&gt;
+
+@interface ALAssetHelper : NSObject
+
++ (UIImage *)getImage:(ALAsset *)asset original:(BOOL)original;
+
+@end
+</code></pre>
+
+<p>ALAssetHelper.m</p>
+
+<pre><code>#import "ALAssetHelper.h"
+
+@implementation ALAssetHelper
+
++ (UIImage *)getImage:(ALAsset *)asset original:(BOOL)original
+{
+    UIImage *image = nil;
+    CGImageRef ref = nil;
+
+    ALAssetRepresentation *rep = [asset defaultRepresentation];
+
+    if (original) {
+        // 获取ios剪裁后的图片
+        NSData *xmpData = rep.metadata[@"AdjustmentXMP"];
+        if (xmpData != nil) {
+            ref   = [rep fullScreenImage];
+            image = [UIImage imageWithCGImage:ref];
+        } else {
+            ref   = [rep fullResolutionImage];
+            image = [UIImage imageWithCGImage:ref
+                                    scale:[rep scale]
+                              orientation:(UIImageOrientation)[rep orientation]];
+        }
+    } else {
+        ref   = [rep fullScreenImage];
+        image = [UIImage imageWithCGImage:ref];
+    }
+
+    return image;
+}
+
+@end
+</code></pre>
+
+<p>3、枚举相册</p>
+
+<pre><code>- (void)enumerateAssetsGroups {
+    self.assetGroups = [NSMutableArray arrayWithCapacity:0];
+
+    ALAssetsLibrary *library = [[ALAssetsLibraryAccessor sharedInstance] assetsLibrary];
+
+    // Load Albums into assetGroups
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @autoreleasepool {
+            // Group enumerator Block
+            void (^assetGroupEnumerator)(ALAssetsGroup *, BOOL *) = ^(ALAssetsGroup *group, BOOL *stop)
+            {
+                if (group) {
+                    [self.assetGroups addObject:group];
+                } else {
+                    // group is nil, so there are no more groups to enumerate
+                }
+            };
+
+            // Group Enumerator Failure Block
+            void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
+                if (error.code == ALAssetsLibraryAccessUserDeniedError ||
+                error.code == ALAssetsLibraryAccessGloballyDeniedError) {
+                // Denied Error
+                }
+            };
+
+            // Enumerate Albums
+            [library enumerateGroupsWithTypes:ALAssetsGroupAll
+                               usingBlock:assetGroupEnumerator
+                             failureBlock:assetGroupEnumberatorFailure];
+        }
+    });
+}
+</code></pre>
+
+<p>4、枚举相片</p>
+
+<pre><code>- (void)enumerateAssets:(ALAssetsGroup *)assetGroup {
+    NSMutableArray *assets = [NSMutableArray arrayWithCapacity:0];
+
+    ALAssetsGroupEnumerationResultsBlock groupEnumeration = ^(ALAsset *result, NSUInteger index, BOOL *stop) {
+        if (result) {
+            [assets addObject:result];
+        } else {
+            //
+        }
+    };
+
+    [assetGroup enumerateAssetsUsingBlock:groupEnumeration];
+}
+</code></pre>
+
+<p>枚举相片的三个方法：</p>
+
+<pre><code>// These methods are used to retrieve the assets that match the filter.  
+// The caller can specify which results are returned using an NSIndexSet. The index set's count or lastIndex cannot exceed -numberOfAssets.
+// 'enumerationBlock' is used to pass back results to the caller and provide the opportunity to stop the filter.
+// When the enumeration is done, 'enumerationBlock' will be called with result set to nil and index set to NSNotFound.
+// If the application has not been granted access to the data, 'enumerationBlock' will be called with result set to nil, index set to NSNotFound, and stop set to YES.
+
+- (void)enumerateAssetsUsingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+- (void)enumerateAssetsWithOptions:(NSEnumerationOptions)options usingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+- (void)enumerateAssetsAtIndexes:(NSIndexSet *)indexSet options:(NSEnumerationOptions)options usingBlock:(ALAssetsGroupEnumerationResultsBlock)enumerationBlock;
+</code></pre>
+
+<p>提问：</p>
+
+<p>如何发送一个ALAsset对象的视频？</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">lingzuer</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-02-02T22:55:30+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>10:55 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/02/01/chang-yong-gong-ju/" title="Previous Post: 常用工具">&laquo; 常用工具</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua/" title="Next Post: ALAssetsLibrary选择图片优化">ALAssetsLibrary选择图片优化 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/02/06/yi-xin-nian-hui/">易信年会</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/05/alassetslibraryxuan-ze-tu-pian-you-hua/">ALAssetsLibrary选择图片优化</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/02/assetslibraryzi-ding-yi-tu-pian-xuan-ze-qi/">AssetsLibrary自定义图片选择器</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/01/chang-yong-gong-ju/">常用工具</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/31/xctestce-shi-shu-xing-bian-hua/">XCTest测试属性变化</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - lingzuer -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
